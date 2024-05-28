@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *DUPA
+ *
  * Author: Sébastien Deronne <sebastien.deronne@gmail.com>
  */
 
@@ -160,11 +160,12 @@ main(int argc, char* argv[])
     // AP is between the two stations, each station being located at 5 meters from the AP.
     // The distance between the two stations is thus equal to 10 meters.
     // Since the wireless range is limited to 5 meters, the two stations are hidden from each other.
-    positionAlloc->Add(Vector(5.0, 5.0, 0.0));
-    positionAlloc->Add(Vector(5.0, 10.0, 0.0));
-    positionAlloc->Add(Vector(10.0, 5.0, 0.0));
-    positionAlloc->Add(Vector(5.0, 0.0, 0.0));
-    positionAlloc->Add(Vector(0.0, 5.0, 0.0));
+    // Place all nodes within a 5 meter range to avoid hidden stations
+    positionAlloc->Add(Vector(0.0, 0.0, 0.0)); // AP
+    positionAlloc->Add(Vector(1.0, 1.0, 0.0)); // Station 1
+    positionAlloc->Add(Vector(2.0, 1.0, 0.0)); // Station 2
+    positionAlloc->Add(Vector(1.0, 2.0, 0.0)); // Station 3
+    positionAlloc->Add(Vector(2.0, 2.0, 0.0)); // Station 4
     mobility.SetPositionAllocator(positionAlloc);
 
     mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
@@ -224,9 +225,9 @@ main(int argc, char* argv[])
     for(int i=1;i<=numStats;i++) {
         totalPackagesDropped = totalPackagesDropped + stats[i].packetsDropped[Ipv4FlowProbe::DROP_QUEUE_DISC];
         packetsDropped = stats[i].packetsDropped[Ipv4FlowProbe::DROP_QUEUE_DISC];
-        std::cout << "Station " << i << " droped packages:\t\t\t" << packetsDropped/100000 << "%\t\t" <<  packetsDropped << std::endl;
+        std::cout << "Station " << i << " droped packages:\t\t\t" << packetsDropped/10000<< "%\t\t" <<  packetsDropped << std::endl;
     }
-    std::cout << "Total droped packages:\t\t\t" <<  totalPackagesDropped/200000 << "%\t\t" << totalPackagesDropped << std::endl; 
+    std::cout << "Total droped packages:\t\t\t" <<  totalPackagesDropped/1000/numStats << "%\t\t" << totalPackagesDropped << std::endl; 
 
     Simulator::Destroy();
 
