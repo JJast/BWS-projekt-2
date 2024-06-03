@@ -36,21 +36,7 @@
 #include "ns3/yans-wifi-helper.h"
 #include "ns3/flow-monitor-module.h"
 
-// This example considers two hidden stations in an 802.11n network which supports MPDU aggregation.
-// The user can specify whether RTS/CTS is used and can set the number of aggregated MPDUs.
-//
-// Example: ./ns3 run "wifi-simple-ht-hidden-stations --enableRts=1 --nMpdus=8"
-//
-// Network topology:
-//
-//   Wifi 192.168.1.0
-//
-//        AP
-//   *    *    *
-//   |    |    |
-//   n1   n2   n3
-//
-// Packets in this simulation belong to BestEffort Access Class (AC_BE).
+
 
 using namespace ns3;
 
@@ -59,13 +45,13 @@ NS_LOG_COMPONENT_DEFINE("SimplesHtHiddenStations");
 int
 main(int argc, char* argv[])
 {
-    uint32_t payloadSize = 1472; // bytes
-    double simulationTime = 10;  // seconds
+    uint32_t payloadSize = 1472; 
+    double simulationTime = 10;  
     uint32_t nMpdus = 1;
     uint32_t maxAmpduSize = 0;
     int mcs = 11;
     int channelWidth = 80;
-    bool enableRts = true;
+    bool enableRts = false;
     double minExpectedThroughput = 0;
     double maxExpectedThroughput = 0;
 
@@ -95,11 +81,10 @@ main(int argc, char* argv[])
         Config::SetDefault("ns3::WifiDefaultProtectionManager::EnableMuRts", BooleanValue(true));
     }
 
-    // Set the maximum size for A-MPDU with regards to the payload size
+
     maxAmpduSize = nMpdus * (payloadSize + 200);
 
-    // Set the maximum wireless range to 5 meters in order to reproduce a hidden nodes scenario,
-    // i.e. the distance between hidden stations is larger than 5 meters
+
     Config::SetDefault("ns3::RangePropagationLossModel::MaxRange", DoubleValue(5));
     int numStats=4;
     NodeContainer wifiStaNodes;
@@ -153,19 +138,16 @@ main(int argc, char* argv[])
     Config::Set("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/BE_MaxAmpduSize",
                 UintegerValue(maxAmpduSize));
 
-    // Setting mobility model
     MobilityHelper mobility;
     Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator>();
 
-    // AP is between the two stations, each station being located at 5 meters from the AP.
-    // The distance between the two stations is thus equal to 10 meters.
-    // Since the wireless range is limited to 5 meters, the two stations are hidden from each other.
-    // Place all nodes within a 5 meter range to avoid hidden stations
-    positionAlloc->Add(Vector(0.0, 0.0, 0.0)); // AP
-    positionAlloc->Add(Vector(1.0, 1.0, 0.0)); // Station 1
-    positionAlloc->Add(Vector(2.0, 1.0, 0.0)); // Station 2
-    positionAlloc->Add(Vector(1.0, 2.0, 0.0)); // Station 3
-    positionAlloc->Add(Vector(2.0, 2.0, 0.0)); // Station 4
+
+    positionAlloc->Add(Vector(5.0, 0.0, 0.0));  
+    positionAlloc->Add(Vector(4.0, 0.0, 0.0));  
+    positionAlloc->Add(Vector(6.0, 0.0, 0.0));  
+    positionAlloc->Add(Vector(5.0, 1.0, 0.0));  
+    positionAlloc->Add(Vector(5.0, -1.0, 0.0)); 
+
     mobility.SetPositionAllocator(positionAlloc);
 
     mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
@@ -173,7 +155,7 @@ main(int argc, char* argv[])
     mobility.Install(wifiApNode);
     mobility.Install(wifiStaNodes);
 
-    // Internet stack
+
     InternetStackHelper stack;
     stack.Install(wifiApNode);
     stack.Install(wifiStaNodes);
@@ -185,7 +167,7 @@ main(int argc, char* argv[])
     Ipv4InterfaceContainer ApInterface;
     ApInterface = address.Assign(apDevice);
 
-    // Setting applications
+
     uint16_t port = 9;
     UdpServerHelper server(port);
     ApplicationContainer serverApp = server.Install(wifiApNode);
@@ -227,7 +209,7 @@ main(int argc, char* argv[])
         packetsDropped = stats[i].packetsDropped[Ipv4FlowProbe::DROP_QUEUE_DISC];
         std::cout << "Station " << i << " droped packages:\t\t\t" << packetsDropped/10000<< "%\t\t" <<  packetsDropped << std::endl;
     }
-    std::cout << "Total droped packages:\t\t\t" <<  totalPackagesDropped/1000/numStats << "%\t\t" << totalPackagesDropped << std::endl; 
+    std::cout << "Total droped packages:\t\t\t" <<  totalPackagesDropped/10000/numStats << "%\t\t" << totalPackagesDropped << std::endl; 
 
     Simulator::Destroy();
 
